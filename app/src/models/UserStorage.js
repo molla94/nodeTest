@@ -1,26 +1,12 @@
 "use strict";
 
+const fs = require("fs").promises;
+
 class UserStorage {
     
-    static #users = {
-        id: ["aaa","bbb","ccc"],
-        psword: ["11","12","13"],
-        name:['nnn','sss','ggg'],
-    };
-
-    static getUsers(...fileds) {
-        const users = this.#users;
-        const newUsers = fileds.reduce((newUsers, filed) => {
-            if(users.hasOwnProperty(filed)){ // 필드가 있으면
-                newUsers[filed] = users[filed];
-            }
-            return newUsers;
-        },{});
-        return newUsers;
-    }
+    static #getUserInfo(id, data) {
     
-    static getUserInfo(id){
-        const users = this.#users;
+        const users = JSON.parse(data);
         const idx = users.id.indexOf(id); // 받아온 아이디가 유저목록에서 몇번째인지
         const userKeys = Object.keys(users); // 유저키들만 받아옴 =[id,psword]
         const userInfo = userKeys.reduce((newUser, info) => { // 각 user key에 리듀스 id돌고 -> psword돌고 -> name돌고  acc 누적값 cur 
@@ -31,12 +17,36 @@ class UserStorage {
             //name     :       nnn
             return newUser;
         },{});
+        // console.log(userInfo);
         return userInfo;
+    
     }
+
+    static getUsers(...fileds) {
+        // const users = this.#users;
+        const newUsers = fileds.reduce((newUsers, filed) => {
+            if(users.hasOwnProperty(filed)){ // 필드가 있으면
+                newUsers[filed] = users[filed];
+            }
+            return newUsers;
+        },{});
+        return newUsers;
+    }
+    
+    static getUserInfo(id){
+        // const users = this.#users;
+        return fs
+        .readFile("./src/databases/users.json")
+        .then((data) => {
+            return this.#getUserInfo(id, data);
+        })
+        .catch((err) => {console.error(err);});
+    }
+    
 
     static save(userInfo) {
         // const { id, psword,...rest } = userInfo; // userInfo에서 id, pw, name만 ���아서 rest에 ��음
-        const users = this.#users;
+        // const users = this.#users;
         users.id.push(userInfo.id);
         users.name.push(userInfo.name);
         users.psword.push(userInfo.psword);
