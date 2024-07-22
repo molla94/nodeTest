@@ -3,3 +3,11 @@
 /app/upload
 /app/src/views/board
 /app/src/views/include
+node_modules
+package-lock.json
+package.json
+
+
+#dotent environment
+/app/.env
+/app.env.test

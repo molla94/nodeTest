@@ -1,6 +1,6 @@
 "use strict";
 
-const fs = require("fs").promises;
+const db = require("../config/db");
 
 class UserStorage {
     
@@ -37,38 +37,30 @@ class UserStorage {
 
     static getUsers(isAll,...fileds) {
 
-        return fs
-        .readFile("./src/databases/users.json")
-        .then((data) => {
-            return this.#getUsers(data, isAll, fileds);
-        })
-        .catch((err) => {console.error(err);});
-
     }
     
     static getUserInfo(id){
-        // const users = this.#users;
-        return fs
-        .readFile("./src/databases/users.json")
-        .then((data) => {
-            return this.#getUserInfo(id, data);
-        })
-        .catch((err) => {console.error(err);});
+        return new Promise((resolve, reject) => {    
+            db.query("SELECT * FROM users where id = ?",[id], (err, data) => {
+             if(err) reject(err);
+             resolve(data[0]);
+            });
+        });
     }
     
-
+    
     static async save(userInfo) {
-        const users = await this.getUsers(true);
-        if(!users.id.includes(userInfo.id)){
-            users.id.push(userInfo.id);
-            users.name.push(userInfo.name);
-            users.psword.push(userInfo.psword);
-            fs.writeFile("./src/databases/users.json", JSON.stringify(users));
-            return {success: true};
-        }else{
-           throw '이미있는 아이디';
-        }
-
+        return new Promise((resolve, reject) => { 
+            const query = "INSERT INTO users (id, name, psword) VALUES (?,?,?);";   
+            db.query(
+                query,
+                [userInfo.id,userInfo.name,userInfo.psword],
+            (err) => {
+             if(err) reject(err);
+             resolve( {success: true});
+            });
+        });
+    
     }
 }
 
