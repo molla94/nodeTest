@@ -4,6 +4,7 @@ const fs = require("fs").promises;
 
 class UserStorage {
     
+    //은닉화한 함수는 보통 최상단에 배치함
     static #getUserInfo(id, data) {
     
         const users = JSON.parse(data);
@@ -19,11 +20,11 @@ class UserStorage {
         },{});
         // console.log(userInfo);
         return userInfo;
-    
+        
     }
-
-    static getUsers(...fileds) {
-        // const users = this.#users;
+    static #getUsers(data, isAll, fileds) {
+        const users = JSON.parse(data);
+        if(isAll) return users;
         const newUsers = fileds.reduce((newUsers, filed) => {
             if(users.hasOwnProperty(filed)){ // 필드가 있으면
                 newUsers[filed] = users[filed];
@@ -31,6 +32,18 @@ class UserStorage {
             return newUsers;
         },{});
         return newUsers;
+    
+    }
+
+    static getUsers(isAll,...fileds) {
+
+        return fs
+        .readFile("./src/databases/users.json")
+        .then((data) => {
+            return this.#getUsers(data, isAll, fileds);
+        })
+        .catch((err) => {console.error(err);});
+
     }
     
     static getUserInfo(id){
@@ -44,16 +57,17 @@ class UserStorage {
     }
     
 
-    static save(userInfo) {
-        // const { id, psword,...rest } = userInfo; // userInfo에서 id, pw, name만 ���아서 rest에 ��음
-        // const users = this.#users;
-        users.id.push(userInfo.id);
-        users.name.push(userInfo.name);
-        users.psword.push(userInfo.psword);
-        return {success: true};
-        // console.log(users);
-        // Object.assign(users, rest); // rest를 users에 assign
-        // return userInfo;
+    static async save(userInfo) {
+        const users = await this.getUsers(true);
+        if(!users.id.includes(userInfo.id)){
+            users.id.push(userInfo.id);
+            users.name.push(userInfo.name);
+            users.psword.push(userInfo.psword);
+            fs.writeFile("./src/databases/users.json", JSON.stringify(users));
+            return {success: true};
+        }else{
+           throw '이미있는 아이디';
+        }
 
     }
 }
